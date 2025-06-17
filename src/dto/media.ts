@@ -81,5 +81,12 @@ export class DeleteMediaResponse {
     example: [],
     type: [String],
   })
+
   failedFiles: string[];
+  @ApiProperty({
+  description: 'Result message',
+  example: 'Deleted 2 files, failed to delete 1 file',
+  required: false
+})
+message?: string;
 }

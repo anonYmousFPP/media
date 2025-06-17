@@ -2,108 +2,106 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3_CONSTANTS } from '../utils/constants';
 
 @Injectable()
 export class S3Service {
   private readonly logger = new Logger(S3Service.name);
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
-  private readonly defaultExpiration = 3600;
 
   constructor(private readonly configService: ConfigService) {
-    const awsRegion = this.getConfigValue('AWS_REGION');
-    const awsAccessKey = this.getConfigValue('AWS_ACCESS_KEY');
-    const awsSecretKey = this.getConfigValue('AWS_SECRET_KEY');
-    this.bucketName = this.getConfigValue('AWS_BUCKET_NAME');
+    try {
+      const awsRegion = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.REGION);
+      const awsAccessKey = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.ACCESS_KEY);
+      const awsSecretKey = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.SECRET_KEY);
+      this.bucketName = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.BUCKET_NAME);
 
-    this.s3Client = new S3Client({
-      region: awsRegion,
-      credentials: {
-        accessKeyId: awsAccessKey,
-        secretAccessKey: awsSecretKey,
-      },
-    });
+      this.s3Client = new S3Client({
+        region: awsRegion,
+        credentials: {
+          accessKeyId: awsAccessKey,
+          secretAccessKey: awsSecretKey,
+        },
+      });
 
-    this.logger.log(`S3Service initialized successfully with bucket: ${this.bucketName}`);
-
+      this.logger.log(S3_CONSTANTS.LOG_MESSAGES.INIT_SUCCESS(this.bucketName));
+    } catch (error) {
+      this.logger.error(S3_CONSTANTS.ERROR_MESSAGES.INIT_FAILED, error.stack);
+      throw error;
+    }
   }
 
   private getConfigValue(key: string): string {
     const value = this.configService.get<string>(key);
     if (!value) {
-      throw new Error(`Missing required environment variable: ${key}`);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.MISSING_ENV(key));
     }
     return value;
   }
 
   generateMediaKey(filename: string): string {
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const extension = filename.split('.').pop();
-    return `media/${timestamp}-${randomString}.${extension}`;
+     try {
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const extension = filename.split('.').pop();
+     return `${S3_CONSTANTS.MEDIA_PREFIX}${timestamp}-${randomString}.${extension}`;
+    } catch (error) {
+      this.logger.error(`Failed to generate media key for ${filename}`, error.stack);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.MEDIA_KEY_GEN_FAILED);
+    }
   }
 
-  async generatePresignedPutUrl(
-    key: string,
-    expiresIn: number = this.defaultExpiration
-  ): Promise<string> {
-    const command = new PutObjectCommand({
-      Bucket: this.bucketName,
-      Key: key
-    });
+  async generatePresignedPutUrl(key: string, expiresIn: number = S3_CONSTANTS.DEFAULT_EXPIRATION): Promise<string> {
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: key
+      });
 
-    return getSignedUrl(this.s3Client, command, { expiresIn });
+      return await getSignedUrl(this.s3Client, command, { expiresIn });
+    } catch (error) {
+      this.logger.error(`Failed to generate presigned PUT URL for ${key}`, error.stack);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.PUT_URL_GEN_FAILED);
+    }
   }
 
   getPublicUrl(key: string): string{
     try {
-      const awsRegion = this.configService.get<string>('AWS_REGION');
+      const awsRegion = this.configService.get<string>(S3_CONSTANTS.ENV_KEYS.REGION);
       return `https://${this.bucketName}.s3.${awsRegion}.amazonaws.com/${key}`;
     } catch (error) {
-      console.error('Error generating URL:', error);
-      throw error;
+      this.logger.error('Error generating public URL', error.stack);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.PUBLIC_URL_GEN_FAILED);
     }
   }
 
-  async generatePresignedGetUrl(
-    key: string,
-    expiresIn: number = 86400 // 24 hours
-  ): Promise<string> {
-    const command = new GetObjectCommand({
-      Bucket: this.bucketName,
-      Key: key,
-    });
-
-    return getSignedUrl(this.s3Client, command, { expiresIn });
-  }
-
-
-  async generatePresignedUrl(fileName: string, fileType: string): Promise<string> {
-    const command = new PutObjectCommand({
+  async generatePresignedGetUrl(key: string, expiresIn: number =  S3_CONSTANTS.GET_URL_EXPIRATION): Promise<string> {
+    try{
+      const command = new GetObjectCommand({
         Bucket: this.bucketName,
-        Key: fileName,
-        ContentType: fileType,
-    });
+        Key: key,
+      });
 
-    const url = await getSignedUrl(this.s3Client, command, {
-        expiresIn: 300, 
-    });
-    return url;
-  }
-
-  async deleteFile(files: string): Promise<void> {
-    const command = new DeleteObjectCommand({
-      Bucket: this.bucketName,
-      Key: files
-    });
-
-    try {
-      await this.s3Client.send(command);
-      console.log(`File ${files} deleted successfully`);
+      return getSignedUrl(this.s3Client, command, { expiresIn });
     } catch (error) {
-      console.error('Error deleting file from S3:', error);
-      throw error;
+      this.logger.error(`Failed to generate presigned GET URL for ${key}`, error.stack);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.GET_URL_GEN_FAILED);
     }
   }
 
+  async deleteFile(key: string): Promise<void> {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      });
+
+      await this.s3Client.send(command);
+      this.logger.log(S3_CONSTANTS.LOG_MESSAGES.FILE_DELETED(key));
+    } catch (error) {
+      this.logger.error(`Failed to delete file ${key}`, error.stack);
+      throw new Error(S3_CONSTANTS.ERROR_MESSAGES.FILE_DELETE_FAILED);
+    }
+  }
 }

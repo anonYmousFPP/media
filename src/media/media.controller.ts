@@ -46,14 +46,14 @@ export class MediaController {
   @Post('/uploadMedia')
   @ApiOperation({ summary: 'Get signed upload URLs', description: 'Generates signed URLs for uploading multiple media files' })
   @ApiBody({ type: GetSignedUploadUrlsRequest })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'Successfully generated signed URLs',
     type: GetSignedUploadUrlsResponse,
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'Error generating upload URLs' 
+  @ApiResponse({
+    status: 404,
+    description: 'Error generating upload URLs'
   })
   async getSignedUploadUrls(@Body() request: GetSignedUploadUrlsRequest): Promise<GetSignedUploadUrlsResponse> {
     return await this.mediaService.getSignedUrlsInternal(request);
@@ -63,7 +63,7 @@ export class MediaController {
   @Delete('/deleteMedia')
   @ApiOperation({ summary: 'Delete media files', description: 'Deletes specified media files from storage' })
   @ApiBody({ type: DeleteMediaRequest })
-  @ApiResponse({ 
+  @ApiResponse({
     status: 200,
     description: 'Media deletion results',
     type: DeleteMediaResponse,
