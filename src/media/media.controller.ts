@@ -1,10 +1,17 @@
-import { Body, Controller, Post, Delete, UseGuards } from '@nestjs/common';
 import { S3Service } from '../aws/s3.service';
-import { GetSignedUploadUrlsRequest, GetSignedUploadUrlsResponse, DeleteMediaRequest, DeleteMediaResponse, GetMediaResponse, GetMediaRequest } from '../dto/media';
 import { MediaService } from './media.service';
-import { GrpcAuthGuard } from 'src/guard/grpc-auth.guard';
 import { ApiMedia } from 'src/docs/media.swagger';
 import { HttpStatus, HttpCode } from '@nestjs/common';
+import { GrpcAuthGuard } from 'src/guard/grpc-auth.guard';
+import { Body, Controller, Post, Delete, UseGuards } from '@nestjs/common';
+import { GetSignedUploadUrlsRequest,
+  GetSignedUploadUrlsResponse,
+  DeleteMediaRequest,
+  DeleteMediaResponse,
+  GetMediaResponse,
+  GetMediaRequest
+} from '../dto/media';
+
 @Controller('media')
 @ApiMedia.controller()
 export class MediaController {

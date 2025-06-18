@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MediaController } from './media.controller';
 import { S3Service } from '../aws/s3.service';
 import { MediaService } from './media.service';
+import { MediaController } from './media.controller';
 import { GrpcAuthModule } from 'src/guard/grpc-auth.module';
+
 @Module({
   imports: [GrpcAuthModule],
   providers: [S3Service, MediaService],

@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
 import { S3Service } from '../aws/s3.service';
+import { MEDIA_CONSTANTS } from '../utils/constants';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   GetSignedUploadUrlsRequest,
   GetSignedUploadUrlsResponse,
@@ -8,7 +9,6 @@ import {
   GetMediaResponse,
   GetMediaRequest,
 } from 'src/dto/media';
-import { MEDIA_CONSTANTS } from '../utils/constants';
 
 @Injectable()
 export class MediaService {
