@@ -4,7 +4,8 @@ export const S3_CONSTANTS = {
   PRESIGNED_URL_EXPIRATION: 300, // 5 minutes
   MEDIA_PREFIX: 'media/',
   ERROR_MESSAGES: {
-    MISSING_ENV: (key: string) => `Missing required environment variable: ${key}`,
+    MISSING_ENV: (key: string) =>
+      `Missing required environment variable: ${key}`,
     MEDIA_KEY_GEN_FAILED: 'Failed to generate unique file key',
     PUT_URL_GEN_FAILED: 'Failed to generate upload URL',
     GET_URL_GEN_FAILED: 'Failed to generate download URL',
@@ -13,7 +14,8 @@ export const S3_CONSTANTS = {
     INIT_FAILED: 'Failed to initialize S3Service',
   },
   LOG_MESSAGES: {
-    INIT_SUCCESS: (bucket: string) => `S3Service initialized with bucket: ${bucket}`,
+    INIT_SUCCESS: (bucket: string) =>
+      `S3Service initialized with bucket: ${bucket}`,
     FILE_DELETED: (key: string) => `Successfully deleted file: ${key}`,
   },
   ENV_KEYS: {
@@ -29,7 +31,7 @@ export const MEDIA_CONSTANTS = {
     GET_MEDIA_FAILED: 'Error getting media URL',
     GENERATE_URLS_FAILED: 'Error generating upload URL',
     DELETE_MEDIA_FAILED: 'Error deleting media files',
-    FILE_DELETE_PARTIAL_FAIL: (success: number, failed: number) => 
+    FILE_DELETE_PARTIAL_FAIL: (success: number, failed: number) =>
       `Deleted ${success} files, failed to delete ${failed} files`,
   },
   RESPONSE_MESSAGES: {

@@ -13,8 +13,12 @@ export class S3Service {
   constructor(private readonly configService: ConfigService) {
     try {
       const awsRegion = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.REGION);
-      const awsAccessKey = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.ACCESS_KEY);
-      const awsSecretKey = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.SECRET_KEY);
+      const awsAccessKey = this.getConfigValue(
+        S3_CONSTANTS.ENV_KEYS.ACCESS_KEY,
+      );
+      const awsSecretKey = this.getConfigValue(
+        S3_CONSTANTS.ENV_KEYS.SECRET_KEY,
+      );
       this.bucketName = this.getConfigValue(S3_CONSTANTS.ENV_KEYS.BUCKET_NAME);
 
       this.s3Client = new S3Client({
@@ -27,7 +31,7 @@ export class S3Service {
 
       this.logger.log(S3_CONSTANTS.LOG_MESSAGES.INIT_SUCCESS(this.bucketName));
     } catch (error) {
-      this.logger.error(S3_CONSTANTS.ERROR_MESSAGES.INIT_FAILED, error.stack);
+      this.logger.error(S3_CONSTANTS.ERROR_MESSAGES.INIT_FAILED, error);
       throw error;
     }
   }
@@ -41,43 +45,54 @@ export class S3Service {
   }
 
   generateMediaKey(filename: string): string {
-     try {
+    try {
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
       const extension = filename.split('.').pop();
-     return `${S3_CONSTANTS.MEDIA_PREFIX}${timestamp}-${randomString}.${extension}`;
+      return `${S3_CONSTANTS.MEDIA_PREFIX}${timestamp}-${randomString}.${extension}`;
     } catch (error) {
-      this.logger.error(`Failed to generate media key for ${filename}`, error.stack);
+      this.logger.error(`Failed to generate media key for ${filename}`, error);
       throw new Error(S3_CONSTANTS.ERROR_MESSAGES.MEDIA_KEY_GEN_FAILED);
     }
   }
 
-  async generatePresignedPutUrl(key: string, expiresIn: number = S3_CONSTANTS.DEFAULT_EXPIRATION): Promise<string> {
+  async generatePresignedPutUrl(
+    key: string,
+    expiresIn: number = S3_CONSTANTS.DEFAULT_EXPIRATION,
+  ): Promise<string> {
     try {
       const command = new PutObjectCommand({
         Bucket: this.bucketName,
-        Key: key
+        Key: key,
       });
 
       return await getSignedUrl(this.s3Client, command, { expiresIn });
     } catch (error) {
-      this.logger.error(`Failed to generate presigned PUT URL for ${key}`, error.stack);
+      this.logger.error(
+        `Failed to generate presigned PUT URL for ${key}`,
+        error,
+      );
       throw new Error(S3_CONSTANTS.ERROR_MESSAGES.PUT_URL_GEN_FAILED);
     }
   }
 
-  getPublicUrl(key: string): string{
+  getPublicUrl(key: string): string {
     try {
-      const awsRegion = this.configService.get<string>(S3_CONSTANTS.ENV_KEYS.REGION);
+      const awsRegion = this.configService.get<string>(
+        S3_CONSTANTS.ENV_KEYS.REGION,
+      );
       return `https://${this.bucketName}.s3.${awsRegion}.amazonaws.com/${key}`;
     } catch (error) {
-      this.logger.error('Error generating public URL', error.stack);
+      this.logger.error('Error generating public URL', error);
       throw new Error(S3_CONSTANTS.ERROR_MESSAGES.PUBLIC_URL_GEN_FAILED);
     }
   }
 
-  async generatePresignedGetUrl(key: string, expiresIn: number =  S3_CONSTANTS.GET_URL_EXPIRATION): Promise<string> {
-    try{
+  async generatePresignedGetUrl(
+    key: string,
+    expiresIn: number = S3_CONSTANTS.GET_URL_EXPIRATION,
+  ): Promise<string> {
+    try {
       const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
@@ -85,7 +100,10 @@ export class S3Service {
 
       return getSignedUrl(this.s3Client, command, { expiresIn });
     } catch (error) {
-      this.logger.error(`Failed to generate presigned GET URL for ${key}`, error.stack);
+      this.logger.error(
+        `Failed to generate presigned GET URL for ${key}`,
+        error,
+      );
       throw new Error(S3_CONSTANTS.ERROR_MESSAGES.GET_URL_GEN_FAILED);
     }
   }
@@ -100,7 +118,7 @@ export class S3Service {
       await this.s3Client.send(command);
       this.logger.log(S3_CONSTANTS.LOG_MESSAGES.FILE_DELETED(key));
     } catch (error) {
-      this.logger.error(`Failed to delete file ${key}`, error.stack);
+      this.logger.error(`Failed to delete file ${key}`, error);
       throw new Error(S3_CONSTANTS.ERROR_MESSAGES.FILE_DELETE_FAILED);
     }
   }

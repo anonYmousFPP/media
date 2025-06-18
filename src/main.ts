@@ -1,24 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import { ConfigService } from '@nestjs/config';
+import { setupSwagger } from './docs/config.swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
-  const config = new DocumentBuilder()
-  .setTitle('Media API')
-  .setDescription('API for managing media uploads and retrieval')
-  .setVersion('1.0')
-  .addTag('media')
-  .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  setupSwagger(app);
 
   await app.startAllMicroservices();
   app.enableCors();
-  await app.listen(3000);
-  console.log(`HTTP server running on http://localhost:3000`);
-  console.log(`gRPC server running on localhost:5000`);
+
+  const port = configService.get<number>('PORT') || 3000;
+  const grpcPort = configService.get<number>('GRPC_PORT') || 5000;
+
+  await app.listen(port);
+  console.log(`HTTP server running on http://localhost:${port}`);
+  console.log(`gRPC server running on localhost:${grpcPort}`);
 }
 bootstrap();

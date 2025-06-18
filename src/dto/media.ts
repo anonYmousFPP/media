@@ -11,7 +11,8 @@ export class GetMediaRequest {
 export class GetMediaResponse {
   @ApiProperty({
     description: 'Public URL to access the media file',
-    example: 'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg',
+    example:
+      'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg',
   })
   fileUrl: string;
 }
@@ -34,13 +35,15 @@ export class SignedUrl {
 
   @ApiProperty({
     description: 'Signed URL for uploading the file',
-    example: 'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg?X-Amz-Algorithm=...',
+    example:
+      'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg?X-Amz-Algorithm=...',
   })
   uploadUrl: string;
 
   @ApiProperty({
     description: 'Public URL to access the file after upload',
-    example: 'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg',
+    example:
+      'https://bucket-name.s3.region.amazonaws.com/media/1234567890-abc123.jpg',
   })
   publicUrl: string;
 }
@@ -81,12 +84,11 @@ export class DeleteMediaResponse {
     example: [],
     type: [String],
   })
-
   failedFiles: string[];
   @ApiProperty({
-  description: 'Result message',
-  example: 'Deleted 2 files, failed to delete 1 file',
-  required: false
-})
-message?: string;
+    description: 'Result message',
+    example: 'Deleted 2 files, failed to delete 1 file',
+    required: false,
+  })
+  message?: string;
 }
